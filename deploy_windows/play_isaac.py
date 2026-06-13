@@ -120,11 +120,12 @@ world.scene.add(object_cube)
 world.reset()
 hand.initialize()
 
-# Configure joint drives (stiffness and damping) to activate position control
-kps = np.ones((1, hand.num_dof), dtype=np.float32) * 10.0
-kds = np.ones((1, hand.num_dof), dtype=np.float32) * 1.0
+# Configure joint drives: read default USD stiffness, and set damping to stiffness * 0.05
+dof_props = hand.dof_properties
+kps = np.asarray(dof_props["stiffness"], dtype=np.float32).reshape(1, -1)
+kds = kps * 0.05
 hand._articulation_view.set_gains(kps=kps, kds=kds)
-print("[Physics] Configured joint drives (stiffness=10.0, damping=1.0)")
+print(f"[Physics] Configured joint drives using USD default stiffness and scaled damping (stiffness*0.05). Stiffness range: [{kps.min():.2f}, {kps.max():.2f}]")
 
 # Map joint order between Isaac Sim (alphabetical) and Policy config
 isaac_joint_names = hand.dof_names
