@@ -56,12 +56,9 @@ world = World(stage_units_in_meters=1.0)
 world.scene.add_default_ground_plane()
 
 # Robot USD Model path
-# Note: You need to import 'right_sharpa_wave.xml' into Isaac Sim
-# and save it as a USD file. Keep the USD file at this relative path:
-hand_usd_path = os.path.join(DEPLOY_DIR, "assets", "robots", "sharpa_wave", "right_sharpa_wave", "right_sharpa_wave.usd")
+hand_usd_path = r"D:\isaacsim_ws\right_sharpa_wave.usd"
 if not os.path.exists(hand_usd_path):
     print(f"[Warning] Hand USD not found at: {hand_usd_path}")
-    print("Please import 'right_sharpa_wave.xml' in Isaac Sim URDF Importer first, and save it as a USD at that path.")
 
 # Add Articulation Hand
 prim_utils.create_prim(
@@ -70,8 +67,26 @@ prim_utils.create_prim(
     translation=(0.0, 0.0, 0.6),
     orientation=(0.819152, 0.0, -0.5735764, 0.0),
 )
+
+# Clear any FixedJoint body0 targets to anchor the hand base to the static world
+from pxr import UsdPhysics
+for prim in world.stage.Traverse():
+    if prim.IsA(UsdPhysics.FixedJoint):
+        fixed_joint = UsdPhysics.FixedJoint(prim)
+        fixed_joint.GetBody0Rel().SetTargets([])
+        print(f"[Physics] Cleared body0 target for FixedJoint: {prim.GetPath()}")
+
+# Dynamically locate the hand articulation prim path in the loaded USD stage
+hand_prim_path = "/World/SharpaHand/right_hand_C_MC/right_hand_C_MC"
+for prim in world.stage.Traverse():
+    path = str(prim.GetPath())
+    if path.endswith("right_hand_C_MC/right_hand_C_MC"):
+        hand_prim_path = path
+        break
+
+print(f"[Physics] Detected hand Articulation path: {hand_prim_path}")
 hand = Articulation(
-    prim_path="/World/SharpaHand/right_hand_C_MC/right_hand_C_MC",
+    prim_path=hand_prim_path,
     name="sharpa_hand",
 )
 world.scene.add(hand)
@@ -89,6 +104,13 @@ world.scene.add(object_cube)
 # Reset world to instantiate physics
 world.reset()
 hand.initialize()
+
+# Configure joint drives (stiffness and damping) to activate position control
+props = hand.dof_properties
+props["stiffness"].fill(10.0)
+props["damping"].fill(1.0)
+hand.set_dof_properties(props)
+print("[Physics] Configured joint drives (stiffness=10.0, damping=1.0)")
 
 # Map joint order between Isaac Sim (alphabetical) and Policy config
 isaac_joint_names = hand.dof_names
