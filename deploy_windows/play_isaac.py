@@ -63,11 +63,14 @@ if not os.path.exists(hand_usd_path):
     print("Please import 'right_sharpa_wave.xml' in Isaac Sim URDF Importer first, and save it as a USD at that path.")
 
 # Add Articulation Hand
-hand = Articulation(
+prim_utils.create_prim(
     prim_path="/World/SharpaHand",
-    name="sharpa_hand",
     usd_path=hand_usd_path,
     translation=(0.0, 0.0, 0.6),
+)
+hand = Articulation(
+    prim_path="/World/SharpaHand/right_sharpa_wave",
+    name="sharpa_hand",
 )
 world.scene.add(hand)
 
@@ -85,9 +88,17 @@ world.scene.add(object_cube)
 world.reset()
 hand.initialize()
 
-# Get Joint Limits from Articulation properties
-dof_limits_lower = hand.dof_properties["lower"]
-dof_limits_upper = hand.dof_properties["upper"]
+# Map joint order between Isaac Sim (alphabetical) and Policy config
+isaac_joint_names = hand.dof_names
+print(f"[Joint Map] Isaac Sim joints: {isaac_joint_names}")
+print(f"[Joint Map] Policy joints: {joint_names}")
+policy_to_isaac_idx = [isaac_joint_names.index(name) for name in joint_names]
+
+# Get Joint Limits from Articulation properties and map to policy order
+dof_limits_lower_isaac = hand.dof_properties["lower"]
+dof_limits_upper_isaac = hand.dof_properties["upper"]
+dof_limits_lower = np.array([dof_limits_lower_isaac[i] for i in policy_to_isaac_idx], dtype=np.float32)
+dof_limits_upper = np.array([dof_limits_upper_isaac[i] for i in policy_to_isaac_idx], dtype=np.float32)
 
 # ====================================================================
 # 4. Load ONNX Policy Session
@@ -142,8 +153,9 @@ while simulation_app.is_running():
     world.step(render=True)
     
     if world.is_playing():
-        # A. Read current joint states
-        current_joint_pos = hand.get_joint_positions()
+        # A. Read current joint states and map to policy joint order
+        current_joint_pos_isaac = hand.get_joint_positions()
+        current_joint_pos = np.array([current_joint_pos_isaac[i] for i in policy_to_isaac_idx], dtype=np.float32)
         object_pos, _ = object_cube.get_world_pose()
         
         # B. Construct current policy frame
@@ -187,11 +199,16 @@ while simulation_app.is_running():
             action = action.astype(np.float32)
             last_action = action.copy()
             
-            # H. Calculate joint target position
+            # H. Calculate joint target position (in policy order)
             target_joint_pos = action * action_scale + default_angles
             target_joint_pos = np.clip(target_joint_pos, dof_limits_lower, dof_limits_upper)
             
-            # Set targets
-            hand.set_joint_position_targets(target_joint_pos)
+            # Map target positions back to Isaac Sim alphabetical joint order
+            target_joint_pos_isaac = np.zeros(num_joints, dtype=np.float32)
+            for i, idx in enumerate(policy_to_isaac_idx):
+                target_joint_pos_isaac[idx] = target_joint_pos[i]
+            
+            # Set targets in Isaac Sim joint order
+            hand.set_joint_position_targets(target_joint_pos_isaac)
 
 simulation_app.close()
