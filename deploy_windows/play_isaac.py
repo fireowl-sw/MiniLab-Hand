@@ -52,7 +52,12 @@ print(f"[Config] Loaded {num_joints} joints configurations. action_scale={action
 # 3. Setup Simulation Scene
 # ====================================================================
 print("[Isaac Sim] Constructing scene...")
-world = World(stage_units_in_meters=1.0)
+# Setup World with matching physics timestep (240 Hz) and control frequency (20 Hz)
+world = World(
+    stage_units_in_meters=1.0,
+    physics_dt=1.0 / 240.0,
+    rendering_dt=1.0 / 20.0,
+)
 world.scene.add_default_ground_plane()
 
 # Robot USD Model path
