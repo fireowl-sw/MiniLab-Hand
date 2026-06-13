@@ -80,7 +80,7 @@ world.scene.add(hand)
 object_cube = DynamicCuboid(
     prim_path="/World/Object",
     name="object_cube",
-    position=(-0.09559, -0.00517, 0.71906),
+    position=(-0.09559, -0.00517, 0.61906),
     scale=(0.04, 0.04, 0.04),
     color=np.array([1.0, 0.0, 0.0]),
 )
@@ -89,10 +89,6 @@ world.scene.add(object_cube)
 # Reset world to instantiate physics
 world.reset()
 hand.initialize()
-hand.set_world_pose(
-    position=np.array([0.0, 0.0, 0.6]),
-    orientation=np.array([0.819152, 0.0, -0.5735764, 0.0])
-)
 
 # Map joint order between Isaac Sim (alphabetical) and Policy config
 isaac_joint_names = hand.dof_names
@@ -126,7 +122,7 @@ else:
 # 5. Control and Inference Loop
 # ====================================================================
 last_action = np.zeros(num_joints, dtype=np.float32)
-object_init_pos = np.array([-0.09559, -0.00517, 0.71906])
+object_init_pos = np.array([-0.09559, -0.00517, 0.61906])
 
 # History buffers for policy observations (e.g. obs_lag_steps=3)
 # Policy Frame Dim = joint_pos_rel (22) + last_actions (22) = 44 (or 49 if tactile is enabled)
