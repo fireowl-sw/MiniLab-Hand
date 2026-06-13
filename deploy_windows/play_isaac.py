@@ -183,8 +183,14 @@ while simulation_app.is_running():
     if world.is_playing():
         # A. Read current joint states and map to policy joint order
         current_joint_pos_isaac = hand.get_joint_positions()
+        if current_joint_pos_isaac is None:
+            continue
         current_joint_pos = np.array([current_joint_pos_isaac[i] for i in policy_to_isaac_idx], dtype=np.float32)
-        object_pos, _ = object_cube.get_world_pose()
+        
+        object_pose = object_cube.get_world_pose()
+        if object_pose is None or object_pose[0] is None:
+            continue
+        object_pos, _ = object_pose
         
         # B. Construct current policy frame
         dof_norm = (current_joint_pos - default_angles).astype(np.float32)
