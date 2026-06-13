@@ -167,7 +167,11 @@ else:
 # ====================================================================
 # 5. Control and Inference Loop
 # ====================================================================
-last_action = np.zeros(num_joints, dtype=np.float32)
+prev_targets = default_angles.copy()
+# Target limits are scaled by 0.9 relative to raw limits (matching dof_limits_scale in training config)
+target_limits_lower = dof_limits_lower * 0.9
+target_limits_upper = dof_limits_upper * 0.9
+
 # Read initial object position dynamically from USD at startup
 object_init_pos, _ = object_cube.get_world_pose()
 print(f"[Physics] Initial object position loaded dynamically: {object_init_pos}")
@@ -215,14 +219,15 @@ while simulation_app.is_running():
         object_pos, _ = object_pose
         
         # B. Construct current policy frame
-        dof_norm = (current_joint_pos - default_angles).astype(np.float32)
+        # Normalize joint positions to [-1, 1] using raw joint limits
+        dof_norm = (2.0 * current_joint_pos - dof_limits_upper - dof_limits_lower) / (dof_limits_upper - dof_limits_lower + 1.0e-8)
         
         if enable_tactile:
             # Mock tactile sensors if not configured (5 sensors with force = 0.0)
             tactile = np.zeros(5, dtype=np.float32)
-            policy_frame = np.concatenate([dof_norm, last_action, tactile])
+            policy_frame = np.concatenate([dof_norm, prev_targets, tactile])
         else:
-            policy_frame = np.concatenate([dof_norm, last_action])
+            policy_frame = np.concatenate([dof_norm, prev_targets])
             
         # C. Maintain history window
         history_buffer.append(policy_frame)
@@ -253,11 +258,13 @@ while simulation_app.is_running():
         if sess is not None:
             action = sess.run(None, {inp_name: obs[None, :]})[0][0]
             action = action.astype(np.float32)
-            last_action = action.copy()
             
             # H. Calculate joint target position (in policy order)
-            target_joint_pos = action * action_scale + default_angles
-            target_joint_pos = np.clip(target_joint_pos, dof_limits_lower, dof_limits_upper)
+            target_joint_pos = action * action_scale + prev_targets
+            target_joint_pos = np.clip(target_joint_pos, target_limits_lower, target_limits_upper)
+            
+            # Update prev_targets for next step
+            prev_targets = target_joint_pos.copy()
             
             # Map target positions back to Isaac Sim alphabetical joint order
             target_joint_pos_isaac = np.zeros(num_joints, dtype=np.float32)
