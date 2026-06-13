@@ -22,6 +22,7 @@ from omni.isaac.core import World
 from omni.isaac.core.articulations import Articulation
 from omni.isaac.core.objects import DynamicCuboid
 import omni.isaac.core.utils.prims as prim_utils
+from omni.isaac.core.utils.types import ArticulationAction
 import carb
 
 # Get current folder path
@@ -57,7 +58,7 @@ world.scene.add_default_ground_plane()
 # Robot USD Model path
 # Note: You need to import 'right_sharpa_wave.xml' into Isaac Sim
 # and save it as a USD file. Keep the USD file at this relative path:
-hand_usd_path = os.path.join(DEPLOY_DIR, "assets", "robots", "sharpa_wave", "right_sharpa_wave.usd")
+hand_usd_path = os.path.join(DEPLOY_DIR, "assets", "robots", "sharpa_wave", "right_sharpa_wave", "right_sharpa_wave.usd")
 if not os.path.exists(hand_usd_path):
     print(f"[Warning] Hand USD not found at: {hand_usd_path}")
     print("Please import 'right_sharpa_wave.xml' in Isaac Sim URDF Importer first, and save it as a USD at that path.")
@@ -67,9 +68,10 @@ prim_utils.create_prim(
     prim_path="/World/SharpaHand",
     usd_path=hand_usd_path,
     translation=(0.0, 0.0, 0.6),
+    orientation=(0.819152, 0.0, -0.5735764, 0.0),
 )
 hand = Articulation(
-    prim_path="/World/SharpaHand/right_sharpa_wave",
+    prim_path="/World/SharpaHand/right_hand_C_MC/right_hand_C_MC",
     name="sharpa_hand",
 )
 world.scene.add(hand)
@@ -78,7 +80,7 @@ world.scene.add(hand)
 object_cube = DynamicCuboid(
     prim_path="/World/Object",
     name="object_cube",
-    position=(0.0, 0.0, 0.62),
+    position=(-0.09559, -0.00517, 0.71906),
     scale=(0.04, 0.04, 0.04),
     color=np.array([1.0, 0.0, 0.0]),
 )
@@ -87,6 +89,10 @@ world.scene.add(object_cube)
 # Reset world to instantiate physics
 world.reset()
 hand.initialize()
+hand.set_world_pose(
+    position=np.array([0.0, 0.0, 0.6]),
+    orientation=np.array([0.819152, 0.0, -0.5735764, 0.0])
+)
 
 # Map joint order between Isaac Sim (alphabetical) and Policy config
 isaac_joint_names = hand.dof_names
@@ -120,7 +126,7 @@ else:
 # 5. Control and Inference Loop
 # ====================================================================
 last_action = np.zeros(num_joints, dtype=np.float32)
-object_init_pos = np.array([0.0, 0.0, 0.62])
+object_init_pos = np.array([-0.09559, -0.00517, 0.71906])
 
 # History buffers for policy observations (e.g. obs_lag_steps=3)
 # Policy Frame Dim = joint_pos_rel (22) + last_actions (22) = 44 (or 49 if tactile is enabled)
@@ -209,6 +215,6 @@ while simulation_app.is_running():
                 target_joint_pos_isaac[idx] = target_joint_pos[i]
             
             # Set targets in Isaac Sim joint order
-            hand.set_joint_position_targets(target_joint_pos_isaac)
+            hand.apply_action(ArticulationAction(joint_positions=target_joint_pos_isaac))
 
 simulation_app.close()
