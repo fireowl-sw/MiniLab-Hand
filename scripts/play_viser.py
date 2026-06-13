@@ -46,22 +46,22 @@ if str(SRC_DIR) not in sys.path:
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from unilab.training import (
+from minilab.training import (
     ensure_registries,
     get_entrypoint_log_root,
 )
-from unilab.training.rsl_rl import (
+from minilab.training.rsl_rl import (
     RslRlVecEnvWrapper,
     get_policy_obs_dims,
     normalize_ppo_train_cfg,
 )
-from unilab.visualization.interactive_playback import (
+from minilab.visualization.interactive_playback import (
     PlaybackControls,
     create_rsl_rl_playback_session,
     select_torch_device,
 )
-from unilab.visualization.render_many import get_grid_offsets
-from unilab.visualization.viser_scene import (
+from minilab.visualization.render_many import get_grid_offsets
+from minilab.visualization.viser_scene import (
     VISER_AVAILABLE,
     MujocoViserScene,
     build_visible_env_indices,
@@ -69,7 +69,7 @@ from unilab.visualization.viser_scene import (
 
 ensure_registries()
 
-from unilab.base import registry
+from minilab.base import registry
 
 try:
     from rsl_rl.runners import OnPolicyRunner
@@ -116,7 +116,7 @@ def _load_env_playback_model(env: Any, env_index: int) -> mujoco.MjModel:
     """Resolve the exact MuJoCo model for one playback env.
 
     Args:
-        env: UniLab env exposing the playback-model contract.
+        env: MiniLab env exposing the playback-model contract.
         env_index: Selected vectorized environment index.
 
     Returns:
@@ -153,7 +153,7 @@ def _build_scene_entries(
 
     Args:
         server: Active viser server.
-        env: UniLab env exposing the playback-model contract.
+        env: MiniLab env exposing the playback-model contract.
         mode: Display mode, either ``single`` or ``all``.
         selected_visible_idx: Selected viewer slot in single-env mode.
         visible_env_indices: Runtime env indices exposed in the viewer.
@@ -232,7 +232,7 @@ def play_viser(args: PlayInteractiveArgs, cfg: DictConfig) -> None:
     def _create_env(env_count: int):
         if cfg is None:
             return registry.make(args.task, num_envs=env_count, sim_backend="mujoco")
-        from unilab.training import create_env
+        from minilab.training import create_env
 
         env_cfg_override = _backend_adapter(cfg).build_task_env_cfg_override()
         return create_env(

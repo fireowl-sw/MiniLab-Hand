@@ -16,9 +16,9 @@ if str(SRC_DIR) not in sys.path:
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from unilab.algos.torch.rsl_rl_runtime import resolve_rsl_rl_ppo_runtime
-from unilab.base.backend.mujoco.xml import materialize_scene_visual_override
-from unilab.training import (
+from minilab.algos.torch.rsl_rl_runtime import resolve_rsl_rl_ppo_runtime
+from minilab.base.backend.mujoco.xml import materialize_scene_visual_override
+from minilab.training import (
     BackendAdapter,
     apply_configured_training_seed,
     create_env,
@@ -30,13 +30,13 @@ from unilab.training import (
     parse_checkpoint_path,
     should_run_playback,
 )
-from unilab.training.experiment import (
+from minilab.training.experiment import (
     ExperimentTracker,
     patch_rsl_rl_resume_state,
     patch_rsl_rl_wandb_writer,
 )
-from unilab.training.rsl_rl import RslRlVecEnvWrapper, normalize_ppo_train_cfg
-from unilab.utils.device import get_default_device
+from minilab.training.rsl_rl import RslRlVecEnvWrapper, normalize_ppo_train_cfg
+from minilab.utils.device import get_default_device
 
 try:
     from rsl_rl.runners import OnPolicyRunner
@@ -116,7 +116,7 @@ def _resolve_ppo_wrapper_cls(rl_cfg: dict[str, Any]) -> type[RslRlVecEnvWrapper]
         rl_cfg: Resolved algorithm config dictionary from Hydra composition.
 
     Returns:
-        Wrapper class used to adapt the UniLab env contract to the active
+        Wrapper class used to adapt the MiniLab env contract to the active
         RSL-RL PPO runtime.
     """
     return resolve_rsl_rl_ppo_runtime(
@@ -334,7 +334,7 @@ def main(cfg: DictConfig) -> None:
 
             nan_guard_cfg = getattr(cfg.training, "nan_guard", None)
             if nan_guard_cfg is not None and getattr(nan_guard_cfg, "enabled", False):
-                from unilab.utils.nan_guard import NanGuard, NanGuardCfg
+                from minilab.utils.nan_guard import NanGuard, NanGuardCfg
 
                 guard = NanGuard(
                     NanGuardCfg(

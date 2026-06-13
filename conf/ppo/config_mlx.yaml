@@ -61,7 +61,7 @@ training:
   play_env_num: 16
   play_steps: 150
   logger: tensorboard
-  wandb_project: unilab
+  wandb_project: minilab
   wandb_entity: null
   wandb_group: null
   wandb_job_type: null

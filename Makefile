@@ -5,16 +5,16 @@ sync:
 .PHONY: setup
 setup:
 	uv sync
-	uv run --no-sync unilab-complete install
+	uv run --no-sync minilab-complete install
 
 .PHONY: setup-motrix
 setup-motrix:
 	uv sync --extra motrix
-	uv run --no-sync unilab-complete install
+	uv run --no-sync minilab-complete install
 
 .PHONY: install-completion
 install-completion:
-	uv run --no-sync unilab-complete install
+	uv run --no-sync minilab-complete install
 
 .PHONY: sync-rocm
 sync-rocm:
@@ -35,7 +35,7 @@ format:
 
 .PHONY: type
 type:
-	uv run mypy src/unilab
+	uv run mypy src/minilab
 	uv run pyright
 
 .PHONY: check
@@ -47,7 +47,7 @@ test:
 
 .PHONY: test-cov
 test-cov:
-	uv run pytest -m "not slow" --cov=unilab --cov-report=term-missing
+	uv run pytest -m "not slow" --cov=minilab --cov-report=term-missing
 
 .PHONY: test-slow
 test-slow:

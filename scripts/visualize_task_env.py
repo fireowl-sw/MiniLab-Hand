@@ -40,14 +40,14 @@ if str(SRC_DIR) not in sys.path:
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from unilab.training import ensure_registries
+from minilab.training import ensure_registries
 
 ensure_registries()
 
-from unilab.base import registry
+from minilab.base import registry
 
 if TYPE_CHECKING:
-    from unilab.base.scene import SceneCfg
+    from minilab.base.scene import SceneCfg
 
 
 def _build_reward_stub(env_cfg_cls: type) -> dict[str, Any] | None:
@@ -142,7 +142,7 @@ def _stitch_replicas(parent_scene_xml: Path, robot_base_xml: Path, env_origins: 
 
 
 def _run_motrix(env, num_envs: int) -> None:
-    from unilab.visualization import render_play_mode
+    from minilab.visualization import render_play_mode
 
     actions = np.zeros((num_envs, env.action_space.shape[0]), dtype=np.float32)
     camera_kwargs = _motrix_camera_kwargs(env, num_envs)

@@ -16,29 +16,29 @@ if str(SRC_DIR) not in sys.path:
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from unilab.algos.torch.hora import HoraDistillationTrainer
-from unilab.algos.torch.hora.distill import (
+from minilab.algos.torch.hora import HoraDistillationTrainer
+from minilab.algos.torch.hora.distill import (
     build_student_actor_and_normalizer,
     load_distilled_checkpoint,
 )
-from unilab.algos.torch.hora.distill_config import (
+from minilab.algos.torch.hora.distill_config import (
     apply_teacher_defaults as _apply_teacher_defaults,
 )
-from unilab.algos.torch.hora.distill_config import (
+from minilab.algos.torch.hora.distill_config import (
     get_teacher_owner_spec as _get_teacher_owner_spec,
 )
-from unilab.algos.torch.hora.distill_config import (
+from minilab.algos.torch.hora.distill_config import (
     resolve_teacher_checkpoint_path as _resolve_teacher_checkpoint_path,
 )
-from unilab.algos.torch.hora.distill_config import (
+from minilab.algos.torch.hora.distill_config import (
     resolved_distill_runtime_cfg as _resolved_distill_runtime_cfg,
 )
-from unilab.algos.torch.hora.distill_config import (
+from minilab.algos.torch.hora.distill_config import (
     teacher_run_metadata as _teacher_run_metadata,
 )
-from unilab.algos.torch.hora.rsl_rl import HoraRslRlVecEnvWrapper as RslRlVecEnvWrapper
-from unilab.base.backend.mujoco.xml import materialize_scene_visual_override
-from unilab.training import (
+from minilab.algos.torch.hora.rsl_rl import HoraRslRlVecEnvWrapper as RslRlVecEnvWrapper
+from minilab.base.backend.mujoco.xml import materialize_scene_visual_override
+from minilab.training import (
     BackendAdapter,
     create_env,
     ensure_registries,
@@ -48,7 +48,7 @@ from unilab.training import (
     setup_logger,
     should_run_playback,
 )
-from unilab.training.experiment import get_device_info_dict
+from minilab.training.experiment import get_device_info_dict
 
 
 def _write_distill_run_config(

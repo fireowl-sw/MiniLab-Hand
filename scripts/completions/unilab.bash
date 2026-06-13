@@ -1,6 +1,6 @@
-# Bash completion for UniLab commands launched through `uv run`.
+# Bash completion for MiniLab commands launched through `uv run`.
 
-_unilab_uv_complete() {
+_minilab_uv_complete() {
     COMPREPLY=()
 
     if [[ ${#COMP_WORDS[@]} -lt 2 || ${COMP_WORDS[0]} != "uv" || ${COMP_WORDS[1]} != "run" ]]; then
@@ -13,8 +13,8 @@ _unilab_uv_complete() {
 
     local candidates
     if ! mapfile -t candidates < <(
-        uv run --no-sync unilab-complete --cword "$COMP_CWORD" -- "${COMP_WORDS[@]}" 2>/dev/null \
-            || PYTHONPATH="$repo_root/src${PYTHONPATH:+:$PYTHONPATH}" uv run --no-sync python -m unilab.tools.completion --cword "$COMP_CWORD" -- "${COMP_WORDS[@]}" 2>/dev/null
+        uv run --no-sync minilab-complete --cword "$COMP_CWORD" -- "${COMP_WORDS[@]}" 2>/dev/null \
+            || PYTHONPATH="$repo_root/src${PYTHONPATH:+:$PYTHONPATH}" uv run --no-sync python -m minilab.tools.completion --cword "$COMP_CWORD" -- "${COMP_WORDS[@]}" 2>/dev/null
     ); then
         return 0
     fi
@@ -30,4 +30,4 @@ _unilab_uv_complete() {
     COMPREPLY=("${candidates[@]}")
 }
 
-complete -o default -o bashdefault -F _unilab_uv_complete uv
+complete -o default -o bashdefault -F _minilab_uv_complete uv

@@ -7,7 +7,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from unilab.utils.support_matrix import (
+from minilab.utils.support_matrix import (
     render_generated_block,
     render_support_matrix,
     replace_generated_block,

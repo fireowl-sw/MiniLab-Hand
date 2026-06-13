@@ -16,8 +16,8 @@ from omegaconf import DictConfig, OmegaConf
 ROOT_DIR = Path(__file__).parent.parent
 sys.path.append(str(ROOT_DIR))
 
-from unilab.algos.torch.appo.runtime import resolve_appo_runtime
-from unilab.training import (
+from minilab.algos.torch.appo.runtime import resolve_appo_runtime
+from minilab.training import (
     BackendAdapter,
     apply_configured_training_seed,
     create_env,
@@ -26,7 +26,7 @@ from unilab.training import (
     log_playback_plan,
     should_run_playback,
 )
-from unilab.training.experiment import ExperimentTracker
+from minilab.training.experiment import ExperimentTracker
 
 
 def _training_resume_requested(load_run: Any) -> bool:
@@ -125,7 +125,7 @@ def resolve_appo_checkpoint_path(
     base_log_dir: str | Path,
     load_run: str | int,
 ) -> tuple[str | None, str | None]:
-    from unilab.training import resolve_checkpoint_path
+    from minilab.training import resolve_checkpoint_path
 
     checkpoint_path, checkpoint_dir = resolve_checkpoint_path(
         base_log_dir,
@@ -190,7 +190,7 @@ def play_appo(
             env_cfg_override=env_cfg_override,
         ),
     )
-    from unilab.base.observations import get_obs_dims
+    from minilab.base.observations import get_obs_dims
 
     obs_dim, critic_dim = get_obs_dims(env.obs_groups_spec)
     action_shape = env.action_space.shape

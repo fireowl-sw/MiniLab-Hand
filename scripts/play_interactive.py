@@ -49,17 +49,17 @@ if str(SRC_DIR) not in sys.path:
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from unilab.training import (
+from minilab.training import (
     ensure_registries,
     get_entrypoint_log_root,
     resolve_task_checkpoint_path,
 )
-from unilab.training.rsl_rl import (
+from minilab.training.rsl_rl import (
     RslRlVecEnvWrapper,
     get_policy_obs_dims,
     normalize_ppo_train_cfg,
 )
-from unilab.visualization.interactive_playback import (
+from minilab.visualization.interactive_playback import (
     _HORA_DISTILL_CHECKPOINT_UNAVAILABLE,
     KeyboardCommander,
     PlaybackControls,
@@ -87,10 +87,10 @@ _VELOCITY_COMMAND_TASK_NAME_MARKERS = ("Joystick", "Walk")
 
 ensure_registries()
 
-from unilab.base import registry
-from unilab.base.backend.mujoco.playback import resolve_render_play_model_files
-from unilab.base.scene import SceneCfg
-from unilab.structured_configs import PPOConfig as _StructuredPPOConfig
+from minilab.base import registry
+from minilab.base.backend.mujoco.playback import resolve_render_play_model_files
+from minilab.base.scene import SceneCfg
+from minilab.structured_configs import PPOConfig as _StructuredPPOConfig
 
 PPOConfig = _StructuredPPOConfig
 _PLAYBACK_ENV_UNAVAILABLE = "playback_env_unavailable"
@@ -162,8 +162,8 @@ def _infer_checkpoint_actor_input_dim(ckpt_path: str) -> int | None:
 
 
 def _backend_adapter(cfg: DictConfig, *, algo_name: str = "ppo"):
-    from unilab.base.backend.mujoco.xml import materialize_scene_visual_override
-    from unilab.training import BackendAdapter
+    from minilab.base.backend.mujoco.xml import materialize_scene_visual_override
+    from minilab.training import BackendAdapter
 
     return BackendAdapter(
         cfg,
@@ -784,7 +784,7 @@ def _load_mujoco_model_file_for_viewer(model_file: str):
 
 def _load_resolved_visual_viewer_model(env: Any):
     try:
-        with tempfile.TemporaryDirectory(prefix="unilab-interactive-viewer-") as tmp_dir:
+        with tempfile.TemporaryDirectory(prefix="minilab-interactive-viewer-") as tmp_dir:
             model_files = resolve_render_play_model_files(env, num_envs=1, tmp_dir=tmp_dir)
             model_file = model_files[0] if isinstance(model_files, list) else model_files
             print(
@@ -894,7 +894,7 @@ def _state_has_velocity_commands(env: Any) -> bool:
 
 
 def _is_locomotion_env(env: Any) -> bool:
-    return type(env).__module__.startswith("unilab.envs.locomotion")
+    return type(env).__module__.startswith("minilab.envs.locomotion")
 
 
 def _is_velocity_command_locomotion_task(env: Any) -> bool:
@@ -1018,7 +1018,7 @@ def play_interactive(args, cfg: DictConfig | None = None, *, algo: str | None = 
     def _create_env(num_envs: int):
         if cfg is None:
             return registry.make(args.task, num_envs=num_envs, sim_backend="mujoco")
-        from unilab.training import create_env
+        from minilab.training import create_env
 
         if algo in _OFFPOLICY_INTERACTIVE_ALGOS:
             from train_offpolicy import build_offpolicy_env_cfg_override
@@ -1049,7 +1049,7 @@ def play_interactive(args, cfg: DictConfig | None = None, *, algo: str | None = 
         if algo == "ppo":
             wrapper_cls = RslRlVecEnvWrapper
             if cfg is not None:
-                from unilab.algos.torch.rsl_rl_runtime import resolve_rsl_rl_ppo_runtime
+                from minilab.algos.torch.rsl_rl_runtime import resolve_rsl_rl_ppo_runtime
 
                 wrapper_cls = resolve_rsl_rl_ppo_runtime(
                     _algo_config_dict(cfg),

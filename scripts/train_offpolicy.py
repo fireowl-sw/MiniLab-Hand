@@ -14,7 +14,7 @@ from omegaconf import DictConfig, OmegaConf
 ROOT_DIR = Path(__file__).parent.parent
 sys.path.append(str(ROOT_DIR))
 
-from unilab.training import (
+from minilab.training import (
     BackendAdapter,
     apply_configured_training_seed,
     assert_offpolicy_task_choice_matches_algo,
@@ -24,10 +24,10 @@ from unilab.training import (
     log_playback_plan,
     should_run_playback,
 )
-from unilab.training import (
+from minilab.training import (
     resolve_checkpoint_path as resolve_checkpoint_path_common,
 )
-from unilab.training.experiment import ExperimentTracker
+from minilab.training.experiment import ExperimentTracker
 
 
 def default_device(torch_module, preferred: str | None = None) -> str:
@@ -74,14 +74,14 @@ def resolve_play_obs_dim(obs_groups_spec: dict[str, int]) -> int:
 
 
 def resolve_play_obs_dims(obs_groups_spec: dict[str, int]) -> tuple[int, int]:
-    from unilab.base.observations import get_obs_dims
+    from minilab.base.observations import get_obs_dims
 
     obs_dim, critic_obs_dim = get_obs_dims(obs_groups_spec)
     return int(obs_dim), int(critic_obs_dim)
 
 
 def extract_play_obs(obs_dict):
-    from unilab.base.observations import split_obs_dict
+    from minilab.base.observations import split_obs_dict
 
     obs_out, _ = split_obs_dict(obs_dict)
     return obs_out
@@ -98,7 +98,7 @@ def resolve_play_actor_spec(
     if algo_name != "sac":
         return algo_name, {}
 
-    from unilab.algos.torch.offpolicy.runtime import resolve_custom_offpolicy_runtime
+    from minilab.algos.torch.offpolicy.runtime import resolve_custom_offpolicy_runtime
 
     rl_cfg = cast(dict[str, Any], OmegaConf.to_container(cfg.algo, resolve=True))
     custom_runtime = resolve_custom_offpolicy_runtime(rl_cfg)
@@ -141,13 +141,13 @@ def build_runner(algo_name: str, cfg: DictConfig):
         raise ValueError("cpu_pinned_double_buffer requires synchronized collection")
 
     if algo_name == "sac":
-        from unilab.algos.torch.fast_sac.learner import FastSACLearner
-        from unilab.algos.torch.offpolicy.double_buffer_runner import (
+        from minilab.algos.torch.fast_sac.learner import FastSACLearner
+        from minilab.algos.torch.offpolicy.double_buffer_runner import (
             DoubleBufferOffPolicyRunner,
         )
-        from unilab.algos.torch.offpolicy.runtime import resolve_custom_offpolicy_runtime
-        from unilab.base.registry import ensure_registries as _ensure
-        from unilab.utils.device import get_default_device
+        from minilab.algos.torch.offpolicy.runtime import resolve_custom_offpolicy_runtime
+        from minilab.base.registry import ensure_registries as _ensure
+        from minilab.utils.device import get_default_device
 
         _ensure()
         _device = cfg.training.device or get_default_device()
@@ -156,7 +156,7 @@ def build_runner(algo_name: str, cfg: DictConfig):
         _env = create_env(cfg, num_envs=1, env_cfg_override=env_cfg_override)
         try:
             assert _env.action_space.shape
-            from unilab.base.observations import get_obs_dims as _get_obs_dims
+            from minilab.base.observations import get_obs_dims as _get_obs_dims
 
             _obs_dim, _critic_dim = _get_obs_dims(_env.obs_groups_spec)
             _action_dim = _env.action_space.shape[0]
@@ -257,12 +257,12 @@ def build_runner(algo_name: str, cfg: DictConfig):
         )
 
     if algo_name == "td3":
-        from unilab.algos.torch.common.device import get_env_dims
-        from unilab.algos.torch.fast_td3.learner import FastTD3Learner
-        from unilab.algos.torch.offpolicy.double_buffer_runner import (
+        from minilab.algos.torch.common.device import get_env_dims
+        from minilab.algos.torch.fast_td3.learner import FastTD3Learner
+        from minilab.algos.torch.offpolicy.double_buffer_runner import (
             DoubleBufferOffPolicyRunner,
         )
-        from unilab.utils.device import get_default_device
+        from minilab.utils.device import get_default_device
 
         _device = cfg.training.device or get_default_device()
         _obs_dim, _action_dim, _critic_dim = get_env_dims(
@@ -331,7 +331,7 @@ def build_runner(algo_name: str, cfg: DictConfig):
         )
 
     if algo_name == "flashsac":
-        from unilab.algos.torch.flash_sac.double_buffer import (
+        from minilab.algos.torch.flash_sac.double_buffer import (
             build_flashsac_double_buffer_runner,
         )
 
@@ -350,8 +350,8 @@ def play_offpolicy(algo_name: str, cfg: DictConfig) -> str | None:
     import numpy as np
     import torch
 
-    from unilab.algos.torch.common.actor_factory import build_actor
-    from unilab.algos.torch.offpolicy.worker import resolve_offpolicy_actor_priv_info
+    from minilab.algos.torch.common.actor_factory import build_actor
+    from minilab.algos.torch.offpolicy.worker import resolve_offpolicy_actor_priv_info
 
     env_cfg_override = build_offpolicy_env_cfg_override(algo_name, cfg)
 
@@ -392,7 +392,7 @@ def play_offpolicy(algo_name: str, cfg: DictConfig) -> str | None:
     elif algo_name == "td3":
         import torch
 
-        from unilab.algos.torch.fast_td3.learner import EmpiricalNormalization, TD3Actor
+        from minilab.algos.torch.fast_td3.learner import EmpiricalNormalization, TD3Actor
 
         actor = TD3Actor(
             obs_dim,
@@ -419,7 +419,7 @@ def play_offpolicy(algo_name: str, cfg: DictConfig) -> str | None:
             actor_noise_zeta_max=cfg.algo.algo_params.actor_noise_zeta_max,
         )
         if cfg.algo.obs_normalization:
-            from unilab.algos.torch.common.normalization import EmpiricalNormalization
+            from minilab.algos.torch.common.normalization import EmpiricalNormalization
 
             normalizer = EmpiricalNormalization(shape=obs_dim, device=device)
     else:
@@ -529,7 +529,7 @@ def play_offpolicy(algo_name: str, cfg: DictConfig) -> str | None:
     def _resolve_play_priv_info(obs_dict: dict[str, np.ndarray], info: dict | None) -> np.ndarray:
         if actor_algo_type != "hora_sac":
             raise ValueError("Privileged play info was requested for a non-HORA actor.")
-        from unilab.base.observations import split_obs_dict
+        from minilab.base.observations import split_obs_dict
 
         actor_obs_np, critic_np = split_obs_dict(obs_dict)
         priv_info = resolve_offpolicy_actor_priv_info(

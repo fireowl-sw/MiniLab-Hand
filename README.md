@@ -1,6 +1,6 @@
 # MiniLab-Hand
 
-A lightweight project for dexterous hand reinforcement learning and simulation, reconstructed step-by-step from UniLab.
+A lightweight project for dexterous hand reinforcement learning and simulation, reconstructed step-by-step from MiniLab.
 
 ## Development Log
 

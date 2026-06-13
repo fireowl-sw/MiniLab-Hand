@@ -1,4 +1,4 @@
-"""Analyze UniLab off-policy Perfetto traces."""
+"""Analyze MiniLab off-policy Perfetto traces."""
 
 from __future__ import annotations
 
