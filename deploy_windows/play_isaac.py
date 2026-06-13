@@ -132,6 +132,16 @@ print(f"[Joint Map] Isaac Sim joints: {isaac_joint_names}")
 print(f"[Joint Map] Policy joints: {joint_names}")
 policy_to_isaac_idx = [isaac_joint_names.index(name) for name in joint_names]
 
+# Map default angles from policy order to Isaac Sim alphabetical joint order
+default_angles_isaac = np.zeros(num_joints, dtype=np.float32)
+for i, idx in enumerate(policy_to_isaac_idx):
+    default_angles_isaac[idx] = default_angles[i]
+
+# Set the initial / default pose of the hand joints
+hand.set_joints_default_state(positions=default_angles_isaac)
+hand.set_joint_positions(positions=default_angles_isaac)
+print("[Physics] Set hand joints to default initialization pose.")
+
 # Get Joint Limits from Articulation properties and map to policy order
 dof_limits_lower_isaac = hand.dof_properties["lower"]
 dof_limits_upper_isaac = hand.dof_properties["upper"]
