@@ -66,14 +66,6 @@ prim_utils.create_prim(
     usd_path=hand_usd_path,
 )
 
-# Clear any FixedJoint body0 targets to anchor the hand base to the static world
-from pxr import UsdPhysics
-for prim in world.stage.Traverse():
-    if prim.IsA(UsdPhysics.FixedJoint):
-        fixed_joint = UsdPhysics.FixedJoint(prim)
-        fixed_joint.GetBody0Rel().SetTargets([])
-        print(f"[Physics] Cleared body0 target for FixedJoint: {prim.GetPath()}")
-
 # Dynamically locate the hand articulation prim path in the loaded USD stage
 hand_prim_path = "/World/SharpaHand/right_hand_C_MC/right_hand_C_MC"
 for prim in world.stage.Traverse():
@@ -83,6 +75,26 @@ for prim in world.stage.Traverse():
         break
 
 print(f"[Physics] Detected hand Articulation path: {hand_prim_path}")
+
+# Compute the default world pose of the hand base from USD stage before reset
+from pxr import UsdGeom, UsdPhysics, Gf
+hand_prim = world.stage.GetPrimAtPath(hand_prim_path)
+xformable = UsdGeom.Xformable(hand_prim)
+world_matrix = xformable.ComputeLocalToWorldTransform(0)
+position = world_matrix.ExtractTranslation()
+rot = world_matrix.ExtractRotation()
+quat = rot.GetQuaternion()
+
+# Configure any FixedJoint to anchor the hand root at this computed default pose
+for prim in world.stage.Traverse():
+    if prim.IsA(UsdPhysics.FixedJoint):
+        fixed_joint = UsdPhysics.FixedJoint(prim)
+        fixed_joint.GetBody0Rel().SetTargets([])
+        fixed_joint.GetLocalPos0Attr().Set(Gf.Vec3f(position))
+        fixed_joint.GetLocalRot0Attr().Set(Gf.Quatf(quat.GetReal(), Gf.Vec3f(quat.GetImaginary())))
+        fixed_joint.GetLocalPos1Attr().Set(Gf.Vec3f(0, 0, 0))
+        fixed_joint.GetLocalRot1Attr().Set(Gf.Quatf(1, 0, 0, 0))
+        print(f"[Physics] Anchored FixedJoint {prim.GetPath()} to computed pose: pos={position}, rot={quat}")
 hand = Articulation(
     prim_path=hand_prim_path,
     name="sharpa_hand",
