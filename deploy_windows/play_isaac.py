@@ -20,7 +20,7 @@ simulation_app = SimulationApp({"headless": False})  # Set False to open GUI
 
 from omni.isaac.core import World
 from omni.isaac.core.articulations import Articulation
-from omni.isaac.core.objects import DynamicCuboid
+from omni.isaac.core.prims import RigidPrim
 import omni.isaac.core.utils.prims as prim_utils
 from omni.isaac.core.utils.types import ArticulationAction
 import carb
@@ -60,12 +60,10 @@ hand_usd_path = r"D:\isaacsim_ws\right_sharpa_wave.usd"
 if not os.path.exists(hand_usd_path):
     print(f"[Warning] Hand USD not found at: {hand_usd_path}")
 
-# Add Articulation Hand
+# Add Articulation Hand (rotation/translation omitted to use defaults from USD)
 prim_utils.create_prim(
     prim_path="/World/SharpaHand",
     usd_path=hand_usd_path,
-    translation=(0.0, 0.0, 0.6),
-    orientation=(0.819152, 0.0, -0.5735764, 0.0),
 )
 
 # Clear any FixedJoint body0 targets to anchor the hand base to the static world
@@ -91,13 +89,18 @@ hand = Articulation(
 )
 world.scene.add(hand)
 
-# Add Target Object (Red Cube, 4cm)
-object_cube = DynamicCuboid(
-    prim_path="/World/Object",
+# Dynamically locate the object/cube prim path in the USD stage
+object_prim_path = "/World/SharpaHand/scene/object/object"
+for prim in world.stage.Traverse():
+    path = str(prim.GetPath())
+    if path.endswith("scene/object/object"):
+        object_prim_path = path
+        break
+
+print(f"[Physics] Detected object prim path: {object_prim_path}")
+object_cube = RigidPrim(
+    prim_path=object_prim_path,
     name="object_cube",
-    position=(-0.09559, -0.00517, 0.61906),
-    scale=(0.04, 0.04, 0.04),
-    color=np.array([1.0, 0.0, 0.0]),
 )
 world.scene.add(object_cube)
 
@@ -143,7 +146,9 @@ else:
 # 5. Control and Inference Loop
 # ====================================================================
 last_action = np.zeros(num_joints, dtype=np.float32)
-object_init_pos = np.array([-0.09559, -0.00517, 0.61906])
+# Read initial object position dynamically from USD at startup
+object_init_pos, _ = object_cube.get_world_pose()
+print(f"[Physics] Initial object position loaded dynamically: {object_init_pos}")
 
 # History buffers for policy observations (e.g. obs_lag_steps=3)
 # Policy Frame Dim = joint_pos_rel (22) + last_actions (22) = 44 (or 49 if tactile is enabled)
