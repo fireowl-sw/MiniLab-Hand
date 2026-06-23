@@ -4,6 +4,8 @@
 
 此项目非常适合展示多进程并行编程、强化学习物理仿真适配、跨平台性能调优以及 Sim-to-Real 部署流程的工程实践能力。
 
+🎥 **[演示视频 (Bilibili)](https://www.bilibili.com/video/BV1UDj16XEHM/)**
+
 ---
 
 ## 🌟 核心技术亮点 (Engineering & Algorithmic Highlights)
